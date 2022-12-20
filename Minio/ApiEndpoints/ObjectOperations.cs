@@ -1777,7 +1777,7 @@ public partial class MinioClient : IObjectOperations
             uploadId, etags, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<MultipartUploadHandler> CreateMultipartUpload(NewMultipartUploadPutArgs args, CancellationToken cancellationToken)
+    public async Task<MultipartUploadHandler> CreateMultipartUploadAsync(NewMultipartUploadPutArgs args, CancellationToken cancellationToken)
     {
         var multipartUploadArgs = new NewMultipartUploadPutArgs()
             .WithBucket(args.BucketName)

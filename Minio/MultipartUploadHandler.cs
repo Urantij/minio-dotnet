@@ -9,10 +9,10 @@ namespace Minio;
 
 public class MultipartUploadHandler
 {
-    private readonly MinioClient client;
-    private readonly string bucketName;
-    private readonly string objectName;
-    private readonly string uploadId;
+    public readonly MinioClient client;
+    public readonly string bucketName;
+    public readonly string objectName;
+    public readonly string uploadId;
 
     int nextPartNumber = 1;
 
