@@ -1154,7 +1154,7 @@ public partial class MinioClient : IObjectOperations
     /// <exception cref="NotSupportedException">The file stream cannot be read from</exception>
     /// <exception cref="InvalidOperationException">The file stream is currently in a read operation</exception>
     /// <exception cref="AccessDeniedException">For encrypted PUT operation, Access is denied if the key is wrong</exception>
-    private async Task<string> PutObjectSinglePartAsync(PutObjectArgs args,
+    internal async Task<string> PutObjectSinglePartAsync(PutObjectArgs args,
         CancellationToken cancellationToken = default)
     {
         //Skipping validate as we need the case where stream sends 0 bytes
@@ -1388,7 +1388,7 @@ public partial class MinioClient : IObjectOperations
     /// <exception cref="BucketNotFoundException">When bucket is not found</exception>
     /// <exception cref="ObjectNotFoundException">When object is not found</exception>
     /// <exception cref="AccessDeniedException">For encrypted copy operation, Access is denied if the key is wrong</exception>
-    private async Task CompleteMultipartUploadAsync(CompleteMultipartUploadArgs args,
+    internal async Task CompleteMultipartUploadAsync(CompleteMultipartUploadArgs args,
         CancellationToken cancellationToken)
     {
         args.Validate();
@@ -1775,5 +1775,23 @@ public partial class MinioClient : IObjectOperations
         // Complete multi part upload
         await CompleteMultipartUploadAsync(destBucketName, destObjectName,
             uploadId, etags, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<MultipartUploadHandler> CreateMultipartUpload(NewMultipartUploadPutArgs args, CancellationToken cancellationToken)
+    {
+        var multipartUploadArgs = new NewMultipartUploadPutArgs()
+            .WithBucket(args.BucketName)
+            .WithObject(args.ObjectName)
+            .WithVersionId(args.VersionId)
+            .WithHeaders(args.Headers)
+            .WithContentType(args.ContentType)
+            .WithTagging(args.ObjectTags)
+            .WithLegalHold(args.LegalHoldEnabled)
+            .WithRetentionConfiguration(args.Retention)
+            .WithServerSideEncryption(args.SSE);
+
+        var uploadId = await NewMultipartUploadAsync(multipartUploadArgs, cancellationToken).ConfigureAwait(false);
+
+        return new MultipartUploadHandler(this, args.BucketName, args.ObjectName, uploadId);
     }
 }

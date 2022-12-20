@@ -1,0 +1,68 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Minio;
+
+public class MultipartUploadHandler
+{
+    private readonly MinioClient client;
+    private readonly string bucketName;
+    private readonly string objectName;
+    private readonly string uploadId;
+
+    int nextPartNumber = 1;
+
+    private readonly Dictionary<int, string> etags = new();
+
+    internal MultipartUploadHandler(MinioClient client, string bucketName, string objectName, string uploadId)
+    {
+        this.client = client;
+        this.bucketName = bucketName;
+        this.objectName = objectName;
+        this.uploadId = uploadId;
+    }
+
+    public async Task PutObjectAsync(Stream objectStreamData, int? partNumber = null, long? objectSize = null, string? contentType = null, byte[]? requestBody = null, Dictionary<string, string>? hdr = null, CancellationToken cancellationToken = default)
+    {
+        int thisPartNumber = partNumber ?? nextPartNumber++;
+
+        var putObjectArgs = new PutObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName)
+            .WithObjectSize(objectSize ?? objectStreamData.Length)
+            .WithUploadId(uploadId)
+            .WithStreamData(objectStreamData)
+            .WithPartNumber(thisPartNumber);
+
+        if (contentType != null)
+            putObjectArgs.WithContentType(contentType);
+
+        if (requestBody != null)
+            putObjectArgs.WithRequestBody(requestBody);
+
+        if (hdr != null)
+            putObjectArgs.WithHeaders(hdr);
+
+        var etag = await client.PutObjectSinglePartAsync(putObjectArgs, cancellationToken).ConfigureAwait(false);
+
+        lock (etags)
+        {
+            etags[thisPartNumber] = etag;
+        }
+    }
+
+    public Task CompleteAsync(CancellationToken cancellationToken)
+    {
+        var completeMultipartUploadArgs = new CompleteMultipartUploadArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName)
+            .WithUploadId(uploadId)
+            .WithETags(etags);
+
+        return client.CompleteMultipartUploadAsync(completeMultipartUploadArgs, cancellationToken);
+    }
+}
