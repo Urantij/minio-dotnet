@@ -1330,7 +1330,7 @@ public class CopyObjectArgs : ObjectWriteArgs<CopyObjectArgs>
     }
 }
 
-internal class NewMultipartUploadArgs<T> : ObjectWriteArgs<T>
+public class NewMultipartUploadArgs<T> : ObjectWriteArgs<T>
     where T : NewMultipartUploadArgs<T>
 {
     internal NewMultipartUploadArgs()
@@ -1376,7 +1376,7 @@ internal class NewMultipartUploadArgs<T> : ObjectWriteArgs<T>
     }
 }
 
-internal class NewMultipartUploadPutArgs : NewMultipartUploadArgs<NewMultipartUploadPutArgs>
+public class NewMultipartUploadPutArgs : NewMultipartUploadArgs<NewMultipartUploadPutArgs>
 {
     internal override HttpRequestMessageBuilder BuildRequest(HttpRequestMessageBuilder requestMessageBuilder)
     {
