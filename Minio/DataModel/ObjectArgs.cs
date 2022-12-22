@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+using System.IO;
+
 namespace Minio;
 
 public abstract class ObjectArgs<T> : BucketArgs<T>
@@ -23,6 +25,7 @@ public abstract class ObjectArgs<T> : BucketArgs<T>
 
     internal string ObjectName { get; set; }
     internal byte[] RequestBody { get; set; }
+    internal Stream RequestBodyStream { get; set; }
 
     public T WithObject(string obj)
     {
@@ -33,6 +36,12 @@ public abstract class ObjectArgs<T> : BucketArgs<T>
     public T WithRequestBody(byte[] data)
     {
         RequestBody = data;
+        return (T)this;
+    }
+
+    public T WithRequestBodyStream(Stream data)
+    {
+        RequestBodyStream = data;
         return (T)this;
     }
 

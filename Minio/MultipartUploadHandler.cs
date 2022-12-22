@@ -14,7 +14,7 @@ public class MultipartUploadHandler
     public readonly string objectName;
     public readonly string uploadId;
 
-    int nextPartNumber = 1;
+    public int NextPartNumber { get; private set; } = 1;
 
     private readonly Dictionary<int, string> etags = new();
 
@@ -26,16 +26,16 @@ public class MultipartUploadHandler
         this.uploadId = uploadId;
     }
 
-    public async Task PutObjectAsync(Stream objectStreamData, int? partNumber = null, long? objectSize = null, string? contentType = null, byte[]? requestBody = null, Dictionary<string, string>? hdr = null, CancellationToken cancellationToken = default)
+    public async Task PutObjectAsync(Stream objectStreamData, int? partNumber = null, long? objectSize = null, string contentType = null, byte[] requestBody = null, Dictionary<string, string> hdr = null, CancellationToken cancellationToken = default)
     {
-        int thisPartNumber = partNumber ?? nextPartNumber++;
+        int thisPartNumber = partNumber ?? NextPartNumber++;
 
         var putObjectArgs = new PutObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName)
             .WithObjectSize(objectSize ?? objectStreamData.Length)
             .WithUploadId(uploadId)
-            .WithStreamData(objectStreamData)
+            .WithRequestBodyStream(objectStreamData)
             .WithPartNumber(thisPartNumber);
 
         if (contentType != null)
@@ -55,7 +55,7 @@ public class MultipartUploadHandler
         }
     }
 
-    public Task CompleteAsync(CancellationToken cancellationToken)
+    public Task CompleteAsync(CancellationToken cancellationToken = default)
     {
         var completeMultipartUploadArgs = new CompleteMultipartUploadArgs()
             .WithBucket(bucketName)

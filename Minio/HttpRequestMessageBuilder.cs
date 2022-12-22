@@ -77,6 +77,7 @@ internal class HttpRequestMessageBuilder
             var request = new HttpRequestMessage(Method, requestUri);
 
             if (Content != null) request.Content = new ByteArrayContent(Content);
+            else if (StreamContent != null) request.Content = new StreamContent(StreamContent);
 
             foreach (var parameter in HeaderParameters)
             {
@@ -142,6 +143,7 @@ internal class HttpRequestMessageBuilder
     public Dictionary<string, string> BodyParameters { get; }
 
     public byte[] Content { get; private set; }
+    public Stream StreamContent { get; private set; }
 
     public string ContentTypeKey => "Content-Type";
 
@@ -175,6 +177,11 @@ internal class HttpRequestMessageBuilder
     public void SetBody(byte[] body)
     {
         Content = body;
+    }
+
+    public void SetBodyStream(Stream stream)
+    {
+        StreamContent = stream;
     }
 
     public void AddXmlBody(string body)
