@@ -252,7 +252,8 @@ public partial class MinioClient : IMinioClient
                 args.ObjectName,
                 args.Headers,
                 contentType,
-                args.RequestBody).ConfigureAwait(false);
+                args.RequestBody,
+                bodyStream: args.RequestBodyStream).ConfigureAwait(false);
         return args.BuildRequest(requestMessageBuilder);
     }
 
@@ -269,6 +270,7 @@ public partial class MinioClient : IMinioClient
     /// <param name="body">request body</param>
     /// <param name="resourcePath">query string</param>
     /// <param name="isBucketCreationRequest">boolean to define bucket creation</param>
+    /// <param name="bodyStream">request body stream</param>
     /// <returns>A HttpRequestMessage builder</returns>
     /// <exception cref="BucketNotFoundException">When bucketName is invalid</exception>
     internal async Task<HttpRequestMessageBuilder> CreateRequest(
@@ -279,7 +281,8 @@ public partial class MinioClient : IMinioClient
         string contentType = "application/octet-stream",
         ReadOnlyMemory<byte> body = default,
         string resourcePath = null,
-        bool isBucketCreationRequest = false)
+        bool isBucketCreationRequest = false,
+        Stream bodyStream = null)
     {
         var region = string.Empty;
         if (bucketName != null)
@@ -361,6 +364,11 @@ public partial class MinioClient : IMinioClient
         if (!body.IsEmpty)
         {
             messageBuilder.SetBody(body);
+            messageBuilder.AddOrUpdateHeaderParameter("Content-Type", contentType);
+        }
+        else if (bodyStream != null)
+        {
+            messageBuilder.SetBodyStream(bodyStream);
             messageBuilder.AddOrUpdateHeaderParameter("Content-Type", contentType);
         }
 

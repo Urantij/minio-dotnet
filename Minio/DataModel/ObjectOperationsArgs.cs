@@ -1706,12 +1706,12 @@ internal class CompleteMultipartUploadArgs : ObjectWriteArgs<CompleteMultipartUp
     internal override HttpRequestMessageBuilder BuildRequest(HttpRequestMessageBuilder requestMessageBuilder)
     {
         requestMessageBuilder.AddQueryParameter("uploadId", $"{UploadId}");
-        var parts = new List<XElement>();
 
-        for (var i = 1; i <= ETags.Count; i++)
-            parts.Add(new XElement("Part",
-                new XElement("PartNumber", i),
-                new XElement("ETag", ETags[i])));
+        var parts = ETags.OrderBy(p => p.Key)
+                         .Select(p => new XElement("Part",
+                                        new XElement("PartNumber", p.Key),
+                                        new XElement("ETag", p.Value)))
+                         .ToArray();
 
         var completeMultipartUploadXml = new XElement("CompleteMultipartUpload", parts);
         var bodyString = completeMultipartUploadXml.ToString();
@@ -1888,6 +1888,16 @@ public class PutObjectArgs : ObjectWriteArgs<PutObjectArgs>
             var hex = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
             requestMessageBuilder.AddOrUpdateHeaderParameter("x-amz-content-sha256", hex);
             requestMessageBuilder.SetBody(RequestBody);
+        }
+        else if (RequestBodyStream != null)
+        {
+            var sha256 = SHA256.Create();
+            long initialStreamPosition = RequestBodyStream.Position;
+            var hash = sha256.ComputeHash(RequestBodyStream);
+            RequestBodyStream.Position = initialStreamPosition;
+            var hex = BitConverter.ToString(hash).Replace("-", string.Empty).ToLower();
+            requestMessageBuilder.AddOrUpdateHeaderParameter("x-amz-content-sha256", hex);
+            requestMessageBuilder.SetBodyStream(RequestBodyStream);
         }
 
         return requestMessageBuilder;

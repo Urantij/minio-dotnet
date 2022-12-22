@@ -75,6 +75,8 @@ internal class HttpRequestMessageBuilder
 #else
             if (!Content.IsEmpty) request.Content = new ReadOnlyMemoryContent(Content);
 #endif
+            else if (StreamContent != null) request.Content = new StreamContent(StreamContent);
+
             foreach (var parameter in HeaderParameters)
             {
                 var key = parameter.Key.ToLowerInvariant();
@@ -135,6 +137,7 @@ internal class HttpRequestMessageBuilder
     public Dictionary<string, string> BodyParameters { get; }
 
     public ReadOnlyMemory<byte> Content { get; private set; }
+    public Stream StreamContent { get; private set; }
 
     public string ContentTypeKey => "Content-Type";
 
@@ -169,6 +172,11 @@ internal class HttpRequestMessageBuilder
     public void SetBody(ReadOnlyMemory<byte> body)
     {
         Content = body;
+    }
+
+    public void SetBodyStream(Stream stream)
+    {
+        StreamContent = stream;
     }
 
     public void AddXmlBody(string body)
