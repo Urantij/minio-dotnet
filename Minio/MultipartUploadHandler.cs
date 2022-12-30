@@ -26,6 +26,11 @@ public class MultipartUploadHandler
         this.uploadId = uploadId;
     }
 
+    public int ReservePartNumber()
+    {
+        return NextPartNumber++;
+    }
+
     public async Task PutObjectAsync(Stream objectStreamData, int? partNumber = null, long? objectSize = null, string contentType = null, byte[] requestBody = null, Dictionary<string, string> hdr = null, CancellationToken cancellationToken = default)
     {
         int thisPartNumber = partNumber ?? NextPartNumber++;
