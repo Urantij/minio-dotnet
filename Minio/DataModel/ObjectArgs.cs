@@ -48,6 +48,6 @@ public abstract class ObjectArgs<T> : BucketArgs<T>
     internal override void Validate()
     {
         base.Validate();
-        utils.ValidateObjectName(ObjectName);
+        Utils.ValidateObjectName(ObjectName);
     }
 }
