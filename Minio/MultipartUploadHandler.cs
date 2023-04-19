@@ -52,11 +52,11 @@ public class MultipartUploadHandler
         if (hdr != null)
             putObjectArgs.WithHeaders(hdr);
 
-        var etag = await client.PutObjectSinglePartAsync(putObjectArgs, cancellationToken).ConfigureAwait(false);
+        var putResponse = await client.PutObjectSinglePartAsync(putObjectArgs, cancellationToken).ConfigureAwait(false);
 
         lock (etags)
         {
-            etags[thisPartNumber] = etag;
+            etags[thisPartNumber] = putResponse.Etag;
         }
     }
 
